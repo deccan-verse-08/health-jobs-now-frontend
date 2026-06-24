@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { profilesApi, authApi } from "@/lib/api";
+import { API_BASE } from "@/lib/constants";
 import type { UserProfile } from "@/types/api";
 
 interface EduRecord {
@@ -159,7 +160,7 @@ export default function ProfilePage() {
   }
 
   function handleConnectGoogle() {
-    window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    window.location.href = `${API_BASE}/oauth2/authorization/google`;
   }
 
   // Handle Profile Update
