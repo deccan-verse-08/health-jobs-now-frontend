@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { companyApi, ApiError } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { Company } from "@/types/api";
-import { Building2, Globe, MapPin, Factory, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Building2, Globe, MapPin, Factory, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { CompanyStatusBadge } from "@/components/ui/status-badge";
 
 export default function MyCompanyPage() {
   const router = useRouter();
@@ -50,7 +50,7 @@ export default function MyCompanyPage() {
   if (!ready || !user) {
     return (
       <div className="container mx-auto max-w-3xl px-4 py-10">
-        <div className="animate-pulse space-y-4">
+        <div className="animate-pulse motion-reduce:animate-none space-y-4">
           <div className="h-8 w-1/3 rounded bg-muted" />
           <div className="h-40 rounded bg-muted" />
         </div>
@@ -99,37 +99,21 @@ export default function MyCompanyPage() {
     );
   }
 
-  const statusConfig = {
-    PENDING_APPROVAL: {
-      color: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
-      icon: <Clock className="h-4 w-4" />,
-      label: "Pending Approval",
-    },
-    APPROVED: {
-      color: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
-      icon: <CheckCircle2 className="h-4 w-4" />,
-      label: "Approved",
-    },
-    DENIED: {
-      color: "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30",
-      icon: <AlertTriangle className="h-4 w-4" />,
-      label: "Denied",
-    },
-  };
-
-  const statusInfo = statusConfig[company.status as keyof typeof statusConfig] || statusConfig.PENDING_APPROVAL;
-
   return (
     <div className="container mx-auto max-w-3xl px-4 py-10">
       <h1 className="text-3xl font-bold tracking-tight">My Company</h1>
       <p className="mt-1 text-muted-foreground">Your registered company on HealthJobsNow.</p>
 
       {company.status === "PENDING_APPROVAL" && (
-        <div className="mt-4 flex items-start gap-3 rounded-lg border-2 border-red-500 bg-red-400 dark:bg-red-900/40 p-4">
-          <AlertTriangle className="h-5 w-5 text-amber-700 dark:text-amber-300 shrink-0 mt-0.5" />
+        <div
+          role="status"
+          aria-live="polite"
+          className="mt-4 flex items-start gap-3 rounded-lg border-2 border-warning bg-warning/10 p-4"
+        >
+          <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" aria-hidden="true" />
           <div>
-            <p className="font-bold text-black dark:text-black">Awaiting Admin Approval</p>
-            <p className="mt-0.5 text-sm text-black dark:text-black">
+            <p className="font-bold text-foreground">Awaiting Admin Approval</p>
+            <p className="mt-0.5 text-sm text-foreground">
               Your company is pending admin review. You&apos;ll receive an email once approved, and then you can start posting jobs.
             </p>
           </div>
@@ -141,17 +125,14 @@ export default function MyCompanyPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-xl flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
+                <Building2 className="h-5 w-5" aria-hidden="true" />
                 {company.name}
               </CardTitle>
               <CardDescription className="mt-1">
                 Registered on {company.createdDate ? new Date(company.createdDate).toLocaleDateString() : "N/A"}
               </CardDescription>
             </div>
-            <Badge variant="secondary" className={statusInfo.color}>
-              {statusInfo.icon}
-              <span className="ml-1">{statusInfo.label}</span>
-            </Badge>
+            <CompanyStatusBadge status={company.status} />
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

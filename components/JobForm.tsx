@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { FormField } from "@/components/ui/form-field";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { EMPLOYMENT_TYPES, EXPERIENCE_LEVELS } from "@/lib/constants";
 import type { Job, JobPayload, Company } from "@/types/api";
@@ -43,13 +44,11 @@ export function JobForm({ initial, mode }: { initial?: Job; mode: "create" | "ed
   const [submitting, setSubmitting] = React.useState(false);
   const [myCompany, setMyCompany] = React.useState<Company | null>(null);
 
-  // Fetch the employer's company and auto-select it
   React.useEffect(() => {
     if (user?.roles.includes("EMPLOYER")) {
       companyApi.getMyCompany().then((c) => {
         if (c) {
           setMyCompany(c);
-          // Auto-fill company name on create mode
           if (mode === "create") {
             setForm((f) => ({ ...f, company: c.name }));
           }
@@ -91,114 +90,124 @@ export function JobForm({ initial, mode }: { initial?: Job; mode: "create" | "ed
       <CardHeader>
         <CardTitle>{mode === "create" ? "Post a new job" : "Edit job"}</CardTitle>
       </CardHeader>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit} noValidate>
         <CardContent className="space-y-4">
           {error && (
-            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <div
+              role="alert"
+              aria-live="polite"
+              className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            >
               {error}
             </div>
           )}
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="title">Job title</Label>
-              <Input
-                id="title"
-                value={form.title}
-                onChange={(e) => update("title", e.target.value)}
-                required
-                placeholder="e.g. Registered Nurse"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="company">Company</Label>
-              {isEmployer && myCompany ? (
-                <Select
-                  id="company"
-                  value={form.company}
-                  onChange={(e) => update("company", e.target.value)}
-                  disabled
-                >
-                  <option value={myCompany.name}>{myCompany.name}</option>
-                </Select>
-              ) : (
+            <FormField label="Job title" required className="sm:col-span-2">
+              {(props) => (
                 <Input
-                  id="company"
-                  value={form.company}
-                  onChange={(e) => update("company", e.target.value)}
+                  {...props}
+                  value={form.title}
+                  onChange={(e) => update("title", e.target.value)}
                   required
+                  placeholder="e.g. Registered Nurse"
                 />
               )}
-              {isEmployer && myCompany && (
-                <p className="text-xs text-muted-foreground">
-                  Auto-selected from your registered company.
-                </p>
+            </FormField>
+
+            <FormField
+              label="Company"
+              required
+              hint={isEmployer && myCompany ? "Auto-selected from your registered company." : undefined}
+            >
+              {(props) =>
+                isEmployer && myCompany ? (
+                  <Select
+                    {...props}
+                    value={form.company}
+                    onChange={(e) => update("company", e.target.value)}
+                    disabled
+                  >
+                    <option value={myCompany.name}>{myCompany.name}</option>
+                  </Select>
+                ) : (
+                  <Input
+                    {...props}
+                    value={form.company}
+                    onChange={(e) => update("company", e.target.value)}
+                    required
+                  />
+                )
+              }
+            </FormField>
+
+            <FormField label="Location" required>
+              {(props) => (
+                <Input
+                  {...props}
+                  value={form.location}
+                  onChange={(e) => update("location", e.target.value)}
+                  required
+                  placeholder="City, State"
+                />
               )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={form.location}
-                onChange={(e) => update("location", e.target.value)}
-                required
-                placeholder="City, State"
-              />
-            </div>
+            <FormField label="Salary range" hint="Optional. Example: ₹50,000 - ₹60,000">
+              {(props) => (
+                <Input
+                  {...props}
+                  value={form.salary}
+                  onChange={(e) => update("salary", e.target.value)}
+                  placeholder="₹50,000 - ₹60,000"
+                />
+              )}
+            </FormField>
 
-            <div className="space-y-2">
-              <Label htmlFor="salary">Salary range</Label>
-              <Input
-                id="salary"
-                value={form.salary}
-                onChange={(e) => update("salary", e.target.value)}
-                placeholder="$50,000 - $60,000"
-              />
-            </div>
+            <FormField label="Employment type">
+              {(props) => (
+                <Select
+                  {...props}
+                  value={form.employmentType}
+                  onChange={(e) => update("employmentType", e.target.value)}
+                >
+                  {EMPLOYMENT_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </FormField>
 
-            <div className="space-y-2">
-              <Label htmlFor="employmentType">Employment type</Label>
-              <Select
-                id="employmentType"
-                value={form.employmentType}
-                onChange={(e) => update("employmentType", e.target.value)}
-              >
-                {EMPLOYMENT_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </Select>
-            </div>
+            <FormField label="Experience level" className="sm:col-span-2">
+              {(props) => (
+                <Select
+                  {...props}
+                  value={form.experienceLevel}
+                  onChange={(e) => update("experienceLevel", e.target.value)}
+                >
+                  {EXPERIENCE_LEVELS.map((l) => (
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </FormField>
 
-            <div className="space-y-2">
-              <Label htmlFor="experienceLevel">Experience level</Label>
-              <Select
-                id="experienceLevel"
-                value={form.experienceLevel}
-                onChange={(e) => update("experienceLevel", e.target.value)}
-              >
-                {EXPERIENCE_LEVELS.map((l) => (
-                  <option key={l} value={l}>
-                    {l}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={form.description}
-                onChange={(e) => update("description", e.target.value)}
-                required
-                rows={6}
-                placeholder="Describe the role, responsibilities, and qualifications..."
-              />
-            </div>
+            <FormField label="Description" required className="sm:col-span-2">
+              {(props) => (
+                <Textarea
+                  {...props}
+                  value={form.description}
+                  onChange={(e) => update("description", e.target.value)}
+                  required
+                  rows={6}
+                  placeholder="Describe the role, responsibilities, and qualifications..."
+                />
+              )}
+            </FormField>
           </div>
         </CardContent>
         <CardFooter className="justify-end gap-2">

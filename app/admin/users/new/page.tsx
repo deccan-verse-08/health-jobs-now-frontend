@@ -66,7 +66,7 @@ export default function CreateUserPage() {
       <div className="mb-6">
         <Button variant="ghost" asChild size="sm" className="gap-1.5">
           <Link href="/admin">
-            <ArrowLeft className="h-4 w-4" /> Back to Admin Dashboard
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to Admin Dashboard
           </Link>
         </Button>
       </div>
@@ -74,7 +74,7 @@ export default function CreateUserPage() {
       <Card className="border-border/60 bg-card/40 backdrop-blur">
         <CardHeader>
           <div className="flex items-center gap-2 text-primary">
-            <UserPlus className="h-5 w-5" />
+            <UserPlus className="h-5 w-5" aria-hidden="true" />
             <span className="text-sm font-semibold uppercase tracking-wider">Administration</span>
           </div>
           <CardTitle className="text-2xl mt-1">Create Platform User</CardTitle>
@@ -84,12 +84,12 @@ export default function CreateUserPage() {
         </CardHeader>
         <CardContent>
           {error && (
-            <div className="mb-4 rounded-lg bg-destructive/15 p-3 text-sm text-destructive">
+            <div role="alert" aria-live="polite" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="firstName">First Name</Label>

@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { companyApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 import type { Company } from "@/types/api";
 
@@ -20,10 +21,10 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
   const { user, ready, logout } = useAuth();
   const router = useRouter();
   const [showToast, setShowToast] = React.useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
   const [myCompany, setMyCompany] = React.useState<Company | null>(null);
   const [companyLoaded, setCompanyLoaded] = React.useState(false);
 
-  // Auto-dismiss toast
   React.useEffect(() => {
     if (showToast) {
       const timer = setTimeout(() => setShowToast(false), 4000);
@@ -31,7 +32,6 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
     }
   }, [showToast]);
 
-  // Fetch employer's company
   React.useEffect(() => {
     if (ready && user && user.roles.includes("EMPLOYER") && !companyLoaded) {
       companyApi.getMyCompany().then((c) => {
@@ -44,7 +44,6 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
     }
   }, [ready, user, companyLoaded]);
 
-  // Avoid hydration mismatch: render a stable shell until we know auth state.
   if (!ready) {
     return <div className="h-10 w-32" aria-hidden />;
   }
@@ -79,10 +78,7 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
   const isSeeker = user.roles.includes("JOB_SEEKER");
   const canPost = isAdmin || (isEmployer && myCompany?.status === "APPROVED");
 
-  const wrapperClass = mobile
-    ? "flex flex-col gap-2"
-    : "flex items-center gap-2";
-
+  const wrapperClass = mobile ? "flex flex-col gap-2" : "flex items-center gap-2";
   const buttonFullWidth = mobile ? "w-full justify-start" : "";
 
   return (
@@ -96,7 +92,7 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
             buttonFullWidth
           )}
         >
-          <Shield className="h-4 w-4" />
+          <Shield className="h-4 w-4" aria-hidden="true" />
           Admin Panel
         </Link>
       )}
@@ -105,9 +101,9 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
           size="sm"
           variant="secondary"
           onClick={() => setShowToast(true)}
-          className={`opacity-60 ${mobile ? "w-full justify-center" : ""}`}
+          className={mobile ? "w-full justify-center" : ""}
         >
-          <PlusCircle className="h-4 w-4" />
+          <PlusCircle className="h-4 w-4" aria-hidden="true" />
           Post a Job
         </Button>
       )}
@@ -119,7 +115,7 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
             mobile ? "w-full justify-center" : ""
           )}
         >
-          <PlusCircle className="h-4 w-4" />
+          <PlusCircle className="h-4 w-4" aria-hidden="true" />
           Post a Job
         </Link>
       )}
@@ -131,7 +127,7 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
             buttonFullWidth
           )}
         >
-          <Building2 className="h-4 w-4" />
+          <Building2 className="h-4 w-4" aria-hidden="true" />
           My Company
         </Link>
       )}
@@ -143,7 +139,7 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
             buttonFullWidth
           )}
         >
-          <LayoutDashboard className="h-4 w-4" />
+          <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
           Dashboard
         </Link>
       )}
@@ -155,7 +151,7 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
             buttonFullWidth
           )}
         >
-          <Briefcase className="h-4 w-4" />
+          <Briefcase className="h-4 w-4" aria-hidden="true" />
           My Jobs
         </Link>
       )}
@@ -166,41 +162,63 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
           buttonFullWidth
         )}
       >
-        <UserIcon className="h-4 w-4" />
+        <UserIcon className="h-4 w-4" aria-hidden="true" />
         {user.firstName}
       </Link>
       <Button
         variant="outline"
         size="sm"
         className={mobile ? "w-full justify-center" : ""}
-        onClick={() => {
-          if (window.confirm("Confirm logout?")) {
-            logout();
-            router.push("/");
-          }
-        }}
+        onClick={() => setShowLogoutConfirm(true)}
       >
-        <LogOut className="h-4 w-4" />
+        <LogOut className="h-4 w-4" aria-hidden="true" />
         Logout
       </Button>
 
-      {/* Warning toast — rendered via portal to escape navbar stacking context */}
-      {showToast && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 backdrop-blur-sm">
-          <div className="flex items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-50 dark:bg-amber-950/80 px-5 py-4 shadow-xl max-w-sm">
-            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <div className="text-sm">
-              <p className="font-semibold text-amber-800 dark:text-amber-300">
+      <ConfirmDialog
+        open={showLogoutConfirm}
+        title="Log out of HealthJobsNow?"
+        description="You'll need to sign in again to apply for jobs or manage postings."
+        confirmLabel="Log out"
+        cancelLabel="Stay signed in"
+        onConfirm={() => {
+          setShowLogoutConfirm(false);
+          logout();
+          router.push("/");
+        }}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
+
+      {/* Warning toast — rendered via portal */}
+      {showToast && typeof document !== "undefined" && createPortal(
+        <div
+          role="alertdialog"
+          aria-labelledby="post-job-warning-title"
+          aria-describedby="post-job-warning-desc"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-foreground/40 backdrop-blur-sm p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowToast(false);
+          }}
+        >
+          <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 px-5 py-4 shadow-xl max-w-sm">
+            <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="text-sm flex-1">
+              <p id="post-job-warning-title" className="font-semibold text-foreground">
                 {!myCompany ? "No company registered" : "Company not approved"}
               </p>
-              <p className="mt-0.5 text-amber-700/80 dark:text-amber-400/80">
+              <p id="post-job-warning-desc" className="mt-1 text-muted-foreground">
                 {!myCompany
                   ? "You need to register a company before posting jobs. Go to My Company to get started."
                   : "Your company is awaiting admin approval. You'll be able to post jobs once approved. Or reach out to us at info.deccanverse.pune@gmail.com."}
               </p>
             </div>
-            <button onClick={() => setShowToast(false)} className="shrink-0 text-amber-600/60 hover:text-amber-800 dark:text-amber-400/60">
-              <X className="h-4 w-4" />
+            <button
+              type="button"
+              onClick={() => setShowToast(false)}
+              className="shrink-0 text-muted-foreground hover:text-foreground"
+              aria-label="Dismiss"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
         </div>,

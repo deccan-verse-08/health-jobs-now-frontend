@@ -7,7 +7,9 @@ import { companyApi, ApiError } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Building2, Globe, MapPin, Factory, FileText } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { FormField } from "@/components/ui/form-field";
+import { Building2, Globe, MapPin, Factory } from "lucide-react";
 
 export default function RegisterCompanyPage() {
   const router = useRouter();
@@ -45,7 +47,7 @@ export default function RegisterCompanyPage() {
     try {
       await companyApi.create(form);
       setSuccess(true);
-      await refresh(); // Refresh user to get companyId
+      await refresh();
       setTimeout(() => router.push("/company"), 1500);
     } catch (err) {
       if (err instanceof ApiError) {
@@ -61,7 +63,7 @@ export default function RegisterCompanyPage() {
   if (!ready || !user) {
     return (
       <div className="container mx-auto max-w-2xl px-4 py-10">
-        <div className="animate-pulse space-y-4">
+        <div className="animate-pulse motion-reduce:animate-none space-y-4" aria-busy="true" aria-label="Loading">
           <div className="h-8 w-1/3 rounded bg-muted" />
           <div className="h-64 rounded bg-muted" />
         </div>
@@ -72,15 +74,16 @@ export default function RegisterCompanyPage() {
   if (success) {
     return (
       <div className="container mx-auto max-w-2xl px-4 py-16">
-        <Card className="border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20">
+        <Card className="border-success/30 bg-success/10">
           <CardContent className="flex flex-col items-center gap-4 py-12">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15">
-              <Building2 className="h-8 w-8 text-emerald-600" />
+            <div
+              aria-hidden="true"
+              className="flex h-16 w-16 items-center justify-center rounded-full bg-success/15"
+            >
+              <Building2 className="h-8 w-8 text-success" />
             </div>
-            <h2 className="text-xl font-bold text-emerald-800 dark:text-emerald-300">
-              Company Registered!
-            </h2>
-            <p className="text-center text-sm text-emerald-700/80 dark:text-emerald-400/80">
+            <h2 className="text-xl font-bold text-success">Company Registered!</h2>
+            <p className="text-center text-sm text-foreground">
               Your company has been submitted for admin approval. You&apos;ll receive an email once it&apos;s approved.
             </p>
           </CardContent>
@@ -99,7 +102,7 @@ export default function RegisterCompanyPage() {
       <Card className="mt-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
+            <Building2 className="h-5 w-5" aria-hidden="true" />
             Company Details
           </CardTitle>
           <CardDescription>
@@ -107,87 +110,85 @@ export default function RegisterCompanyPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             {error && (
-              <div className="rounded-lg bg-destructive/15 p-3 text-sm text-destructive">
+              <div
+                role="alert"
+                aria-live="polite"
+                className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+              >
                 {error}
               </div>
             )}
 
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-muted-foreground" />
-                Company Name *
-              </label>
-              <Input
-                id="name"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                placeholder="e.g., Apollo Hospitals"
-                required
-              />
-            </div>
+            <FormField label="Company Name" required>
+              {(props) => (
+                <Input
+                  {...props}
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder="e.g., Apollo Hospitals"
+                  required
+                />
+              )}
+            </FormField>
 
-            <div className="space-y-2">
-              <label htmlFor="description" className="text-sm font-medium flex items-center gap-2">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                Description
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="Brief description of your organization..."
-                rows={3}
-                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </div>
+            <FormField label="Description" hint="Briefly describe your organization (optional)">
+              {(props) => (
+                <Textarea
+                  {...props}
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  placeholder="e.g. A 200-bed multi-specialty hospital serving..."
+                  rows={3}
+                />
+              )}
+            </FormField>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label htmlFor="industry" className="text-sm font-medium flex items-center gap-2">
-                  <Factory className="h-4 w-4 text-muted-foreground" />
-                  Industry
-                </label>
-                <Input
-                  id="industry"
-                  name="industry"
-                  value={form.industry}
-                  onChange={handleChange}
-                  placeholder="e.g., Healthcare, Pharma"
-                />
-              </div>
+              <FormField label="Industry" hint="Optional">
+                {(props) => (
+                  <Input
+                    {...props}
+                    name="industry"
+                    value={form.industry}
+                    onChange={handleChange}
+                    placeholder="e.g., Healthcare, Pharma"
+                  />
+                )}
+              </FormField>
 
-              <div className="space-y-2">
-                <label htmlFor="location" className="text-sm font-medium flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  Location
-                </label>
-                <Input
-                  id="location"
-                  name="location"
-                  value={form.location}
-                  onChange={handleChange}
-                  placeholder="e.g., Pune, Maharashtra"
-                />
-              </div>
+              <FormField label="Location" hint="Optional">
+                {(props) => (
+                  <Input
+                    {...props}
+                    name="location"
+                    value={form.location}
+                    onChange={handleChange}
+                    placeholder="e.g., Pune, Maharashtra"
+                  />
+                )}
+              </FormField>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="website" className="text-sm font-medium flex items-center gap-2">
-                <Globe className="h-4 w-4 text-muted-foreground" />
-                Website
-              </label>
-              <Input
-                id="website"
-                name="website"
-                value={form.website}
-                onChange={handleChange}
-                placeholder="https://www.example.com"
-              />
-            </div>
+            <FormField
+              label="Website"
+              hint="Optional. Include https://"
+            >
+              {(props) => (
+                <Input
+                  {...props}
+                  name="website"
+                  type="url"
+                  inputMode="url"
+                  value={form.website}
+                  onChange={handleChange}
+                  placeholder="https://www.example.com"
+                />
+              )}
+            </FormField>
 
             <Button type="submit" disabled={submitting} className="w-full">
               {submitting ? "Registering..." : "Register Company"}

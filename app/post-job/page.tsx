@@ -46,7 +46,7 @@ export default function PostJobPage() {
   if (!ready || !user) {
     return (
       <div className="container mx-auto max-w-2xl px-4 py-10">
-        <div className="animate-pulse space-y-4">
+        <div className="animate-pulse motion-reduce:animate-none space-y-4" aria-busy="true" aria-label="Loading">
           <div className="h-8 w-1/3 rounded bg-muted" />
           <div className="h-64 rounded bg-muted" />
         </div>
@@ -84,7 +84,7 @@ export default function PostJobPage() {
       <div className="container mx-auto max-w-2xl px-4 py-10">
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+            <div aria-hidden="true" className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
               <Building2 className="h-8 w-8 text-primary" />
             </div>
             <p className="text-lg font-semibold">Register your company first</p>
@@ -136,7 +136,7 @@ export default function PostJobPage() {
   if (isEmployer && !companyLoaded) {
     return (
       <div className="container mx-auto max-w-2xl px-4 py-10">
-        <div className="animate-pulse space-y-4">
+        <div className="animate-pulse motion-reduce:animate-none space-y-4" aria-busy="true" aria-label="Loading company status">
           <div className="h-8 w-1/3 rounded bg-muted" />
           <div className="h-64 rounded bg-muted" />
         </div>

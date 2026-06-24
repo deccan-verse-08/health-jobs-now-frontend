@@ -12,6 +12,8 @@ export const buttonVariants = cva(
         secondary: "bg-muted text-foreground hover:opacity-90",
         ghost: "hover:bg-muted hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        success: "bg-success text-success-foreground hover:opacity-90",
+        warning: "bg-warning text-warning-foreground hover:opacity-90",
       },
       size: {
         default: "h-10 px-4 py-2",

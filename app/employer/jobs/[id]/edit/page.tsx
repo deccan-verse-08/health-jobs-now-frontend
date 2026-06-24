@@ -53,7 +53,7 @@ export default function EditJobPage({
   if (!ready || loading) {
     return (
       <div className="container mx-auto max-w-2xl px-4 py-10">
-        <div className="animate-pulse space-y-4">
+        <div className="animate-pulse motion-reduce:animate-none space-y-4" aria-busy="true" aria-label="Loading job">
           <div className="h-8 w-1/3 rounded bg-muted" />
           <div className="h-64 rounded bg-muted" />
         </div>

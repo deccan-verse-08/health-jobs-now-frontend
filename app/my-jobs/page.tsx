@@ -9,7 +9,6 @@ import {
   MapPin,
   Building2,
   FileText,
-  Clock,
   ArrowRight,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,7 +16,9 @@ import { applicationsApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { ApplicationStatusBadge } from "@/components/ui/status-badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, cn } from "@/lib/utils";
 import type { JobApplication } from "@/types/api";
 
@@ -68,13 +69,15 @@ export default function MyJobsPage() {
 
   if (!ready || loading) {
     return (
-      <div className="container mx-auto max-w-6xl px-4 py-10">
-        <div className="animate-pulse space-y-6">
-          <div className="h-10 w-48 rounded bg-muted" />
-          <div className="h-4 w-64 rounded bg-muted" />
+      <div className="container mx-auto max-w-6xl px-4 py-10" aria-busy="true" aria-label="Loading applications">
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="h-48 rounded bg-muted" />
-            <div className="h-48 rounded bg-muted" />
+            <Skeleton className="h-48" />
+            <Skeleton className="h-48" />
           </div>
         </div>
       </div>
@@ -156,83 +159,15 @@ export default function MyJobsPage() {
         )}
 
         {applications.length === 0 ? (
-          <Card className="flex flex-col items-center justify-center border-dashed py-12 text-center">
-            <CardContent className="space-y-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary mx-auto">
-                <Briefcase className="h-6 w-6" />
-              </div>
-              <div className="space-y-1">
-                <p className="font-semibold text-lg">No applications yet</p>
-                <p className="text-sm text-muted-foreground">
-                  Start applying to healthcare opportunities today.
-                </p>
-              </div>
-              <Link href="/jobs" className={cn(buttonVariants())}>
-                Browse Jobs
-              </Link>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={<Briefcase className="h-6 w-6" aria-hidden="true" />}
+            title="No applications yet"
+            description="Start applying to healthcare opportunities today."
+            action={{ label: "Browse Jobs", href: "/jobs" }}
+          />
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {applications.map((app) => {
-              const statusConfig: Record<
-                string,
-                { label: string; className: string }
-              > = {
-                PENDING: {
-                  label: "Application Sent",
-                  className: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-                },
-                SUBMITTED: {
-                  label: "Application Sent",
-                  className: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-                },
-                APPLICATION_SENT: {
-                  label: "Application Sent",
-                  className: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-                },
-                APPLIED: {
-                  label: "Application Sent",
-                  className: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-                },
-                REVIEWING: {
-                  label: "Under Review",
-                  className: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-                },
-                INTERVIEW: {
-                  label: "Interview Stage",
-                  className:
-                    "bg-purple-500/10 text-purple-600 border-purple-500/20",
-                },
-                INTERVIEW_STAGE: {
-                  label: "Interview Stage",
-                  className:
-                    "bg-purple-500/10 text-purple-600 border-purple-500/20",
-                },
-                APPROVED: {
-                  label: "Accepted",
-                  className:
-                    "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-                },
-                ACCEPTED: {
-                  label: "Accepted",
-                  className:
-                    "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-                },
-                REJECTED: {
-                  label: "Application Rejected",
-                  className: "bg-red-500/10 text-red-600 border-red-500/20",
-                },
-                DENIED: {
-                  label: "Application Rejected",
-                  className: "bg-red-500/10 text-red-600 border-red-500/20",
-                },
-              };
-              const st = statusConfig[app.status] || {
-                label: app.status,
-                className: "bg-muted text-muted-foreground",
-              };
-
               return (
                 <Card
                   key={app.id}
@@ -250,29 +185,27 @@ export default function MyJobsPage() {
                           </CardTitle>
                         </Link>
                         <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
-                          <Building2 className="h-3.5 w-3.5" /> {app.job.company}
+                          <Building2 className="h-3.5 w-3.5" aria-hidden="true" /> {app.job.company}
                         </p>
                       </div>
-                      <Badge className={`text-[11px] font-semibold ${st.className}`}>
-                        {st.label}
-                      </Badge>
+                      <ApplicationStatusBadge status={app.status} />
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4 flex-grow flex flex-col justify-between">
                     <div className="space-y-3">
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
-                          <MapPin className="h-3.5 w-3.5" /> {app.job.location}
+                          <MapPin className="h-3.5 w-3.5" aria-hidden="true" /> {app.job.location}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Calendar className="h-3.5 w-3.5" /> Applied on{" "}
+                          <Calendar className="h-3.5 w-3.5" aria-hidden="true" /> Applied on{" "}
                           {formatDate(app.appliedDate)}
                         </span>
                       </div>
 
                       {app.resumeUrl && (
-                        <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 p-2 text-xs">
-                          <FileText className="h-4 w-4 text-primary shrink-0" />
+                        <div className="flex items-center gap-2 rounded-md border border-border bg-surface p-2 text-xs">
+                          <FileText className="h-4 w-4 text-primary shrink-0" aria-hidden="true" />
                           <span className="truncate font-medium text-foreground max-w-[150px] sm:max-w-xs">
                             Uploaded Resume
                           </span>
@@ -282,13 +215,13 @@ export default function MyJobsPage() {
                             rel="noopener noreferrer"
                             className="ml-auto text-primary hover:underline font-semibold inline-flex items-center gap-0.5 shrink-0"
                           >
-                            Open <ArrowRight className="h-3 w-3" />
+                            Open <ArrowRight className="h-3 w-3" aria-hidden="true" />
                           </a>
                         </div>
                       )}
 
                       {app.employerMessage && (
-                        <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs mt-3 text-foreground/90">
+                        <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs mt-3 text-foreground">
                           <p className="font-semibold text-[10px] text-primary uppercase tracking-wider mb-1">
                             Message from Employer
                           </p>

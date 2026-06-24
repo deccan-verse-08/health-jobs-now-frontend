@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ApplicationStatusBadge } from "@/components/ui/status-badge";
 import { formatDate, cn } from "@/lib/utils";
 import type { Job, JobApplication, Company } from "@/types/api";
 
@@ -165,7 +166,7 @@ export default function DashboardPage() {
   if (!ready || loading) {
     return (
       <div className="container mx-auto max-w-6xl px-4 py-10">
-        <div className="animate-pulse space-y-6">
+        <div className="animate-pulse motion-reduce:animate-none space-y-6">
           <div className="h-10 w-48 rounded bg-muted" />
           <div className="h-4 w-64 rounded bg-muted" />
           <div className="grid gap-6 md:grid-cols-2">
@@ -359,26 +360,16 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-4">
                   {filteredApplications.map((app) => {
-                    const statusBadges: Record<string, { label: string; className: string }> = {
-                      APPLIED: { label: "Applied", className: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-                      INTERVIEW_STAGE: { label: "Interview Stage", className: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
-                      ACCEPTED: { label: "Accepted", className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
-                      REJECTED: { label: "Rejected", className: "bg-red-500/10 text-red-600 border-red-500/20" },
-                    };
-                    const badgeConfig = statusBadges[app.status] || { label: app.status, className: "bg-muted text-muted-foreground" };
-
                     return (
                       <Card key={app.id} className="overflow-hidden border-l-4 border-l-primary">
                         <CardContent className="p-5 space-y-4">
                           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                             <div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <h3 className="font-semibold text-lg">
                                   {app.seeker.firstName} {app.seeker.lastName}
                                 </h3>
-                                <Badge className={`text-[11px] font-semibold ${badgeConfig.className}`}>
-                                  {badgeConfig.label}
-                                </Badge>
+                                <ApplicationStatusBadge status={app.status} />
                               </div>
                             <p className="text-sm text-primary font-medium mt-1">
                               Applied to: <Link href={`/jobs/${app.job.id}`} className="hover:underline">{app.job.title}</Link>
@@ -448,8 +439,11 @@ export default function DashboardPage() {
                           </p>
                           <div className="flex flex-col sm:flex-row gap-3">
                             <div className="w-full sm:w-48">
-                              <label className="text-[10px] text-muted-foreground block mb-1">Select Status</label>
+                              <label htmlFor={`status-${app.id}`} className="text-[10px] text-muted-foreground block mb-1">
+                                Select Status
+                              </label>
                               <select
+                                id={`status-${app.id}`}
                                 value={editingStatuses[app.id] ?? app.status}
                                 onChange={(e) => setEditingStatuses(prev => ({ ...prev, [app.id]: e.target.value }))}
                                 className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -461,8 +455,11 @@ export default function DashboardPage() {
                               </select>
                             </div>
                             <div className="flex-grow">
-                              <label className="text-[10px] text-muted-foreground block mb-1">Email Message to Applicant (Optional)</label>
+                              <label htmlFor={`message-${app.id}`} className="text-[10px] text-muted-foreground block mb-1">
+                                Email Message to Applicant (Optional)
+                              </label>
                               <textarea
+                                id={`message-${app.id}`}
                                 rows={2}
                                 value={editingMessages[app.id] ?? ""}
                                 onChange={(e) => setEditingMessages(prev => ({ ...prev, [app.id]: e.target.value }))}
@@ -496,7 +493,7 @@ export default function DashboardPage() {
       {showToast && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 backdrop-blur-sm">
           <div className="flex items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-50 dark:bg-amber-950/80 px-5 py-4 shadow-xl max-w-sm">
-          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
           <div className="text-sm">
             <p className="font-semibold text-amber-800 dark:text-amber-300">
               {!myCompany ? "No company registered" : "Company not approved"}
@@ -508,8 +505,8 @@ export default function DashboardPage() {
               <br />Or reach out to us at <a href="mailto:info.deccanverse.pune@gmail.com" className="text-primary">info.deccanverse.pune@gmail.com</a>
             </p>
           </div>
-          <button onClick={() => setShowToast(false)} className="shrink-0 text-amber-600/60 hover:text-amber-800 dark:text-amber-400/60">
-            <X className="h-4 w-4" />
+          <button onClick={() => setShowToast(false)} aria-label="Dismiss notification" className="shrink-0 text-amber-600/60 hover:text-amber-800 dark:text-amber-400/60">
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
           </div>
         </div>,

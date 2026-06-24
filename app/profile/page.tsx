@@ -138,7 +138,7 @@ export default function ProfilePage() {
   if (!ready || !user) {
     return (
       <div className="container mx-auto max-w-3xl px-4 py-10">
-        <div className="animate-pulse space-y-4">
+        <div className="animate-pulse motion-reduce:animate-none space-y-4">
           <div className="h-8 w-1/3 rounded bg-muted" />
           <div className="h-40 rounded bg-muted" />
         </div>
@@ -281,44 +281,60 @@ export default function ProfilePage() {
         <div className="space-y-6 print:hidden">
           {/* Phone number completion prompt for OAuth users */}
           {showPhonePrompt && !phoneSuccess && (
-            <div className={`mt-4 rounded-lg border-2 p-5 ${
-              isPhoneComplete
-                ? "border-primary bg-primary/5"
-                : "border-amber-500 bg-amber-100 dark:bg-amber-900/30"
-            }`}>
+            <div
+              role="region"
+              aria-labelledby="phone-prompt-title"
+              className={`mt-4 rounded-lg border-2 p-5 ${
+                isPhoneComplete
+                  ? "border-primary bg-primary/5"
+                  : "border-warning bg-warning/10"
+              }`}
+            >
               <div className="flex items-start gap-3">
-                <Phone className="h-5 w-5 mt-0.5 shrink-0 text-primary" />
+                <Phone className="h-5 w-5 mt-0.5 shrink-0 text-primary" aria-hidden="true" />
                 <div className="flex-1">
-                  <p className="font-bold text-foreground">
+                  <p id="phone-prompt-title" className="font-bold text-foreground">
                     {isPhoneComplete ? "Almost done! Add your phone number" : "Phone number missing"}
                   </p>
                   <p className="mt-0.5 text-sm text-muted-foreground">
                     Add your mobile number so employers can reach you. You can skip this and add it later.
                   </p>
-                  <form onSubmit={handleSavePhone} className="mt-3 flex items-end gap-3">
+                  <form onSubmit={handleSavePhone} className="mt-3 flex flex-col sm:flex-row sm:items-end gap-3">
                     <div className="flex-1 max-w-xs">
+                      <label htmlFor="phone-number-input" className="sr-only">
+                        Mobile number
+                      </label>
                       <Input
+                        id="phone-number-input"
                         type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
                         placeholder="e.g. +91 9999999999"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         required
                       />
                     </div>
-                    <Button type="submit" size="sm" disabled={savingPhone}>
-                      {savingPhone ? "Saving..." : "Save"}
-                    </Button>
-                    <Button type="button" size="sm" variant="ghost" onClick={handleSkipPhone}>
-                      Skip
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button type="submit" size="sm" disabled={savingPhone}>
+                        {savingPhone ? "Saving..." : "Save"}
+                      </Button>
+                      <Button type="button" size="sm" variant="ghost" onClick={handleSkipPhone}>
+                        Skip
+                      </Button>
+                    </div>
                   </form>
                 </div>
               </div>
             </div>
           )}
           {phoneSuccess && (
-            <div className="mt-4 rounded-lg border-2 border-emerald-500 bg-emerald-100 dark:bg-emerald-900/30 p-4">
-              <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+            <div
+              role="status"
+              aria-live="polite"
+              className="mt-4 rounded-lg border-2 border-success bg-success/10 p-4"
+            >
+              <p className="text-sm font-semibold text-success">
                 ✓ Phone number saved successfully!
               </p>
             </div>
@@ -385,22 +401,21 @@ export default function ProfilePage() {
 
               <div className="rounded-md border border-border p-4">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
+                  <CheckCircle2 className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                   <p className="text-xs uppercase text-muted-foreground">Account Status</p>
                 </div>
                 <div className="mt-2">
-                  <Badge
-                    variant={user.status === "APPROVED" ? "default" : "secondary"}
-                    className={
-                      user.status === "APPROVED"
-                        ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
-                        : user.status === "PENDING_APPROVAL"
-                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
-                          : ""
-                    }
-                  >
-                    {user.status}
-                  </Badge>
+                  {user.status === "APPROVED" ? (
+                    <Badge variant="success">APPROVED</Badge>
+                  ) : user.status === "PENDING_APPROVAL" ? (
+                    <Badge variant="warning">PENDING APPROVAL</Badge>
+                  ) : user.status === "DENIED" ? (
+                    <Badge variant="destructive">DENIED</Badge>
+                  ) : user.status === "BANNED" ? (
+                    <Badge variant="destructive">BANNED</Badge>
+                  ) : (
+                    <Badge variant="secondary">{user.status ?? "UNKNOWN"}</Badge>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -578,9 +593,10 @@ export default function ProfilePage() {
                             <button
                               type="button"
                               onClick={() => removeSkill(skill)}
-                              className="text-muted-foreground hover:text-foreground text-xs font-bold"
+                              aria-label={`Remove skill ${skill}`}
+                              className="text-muted-foreground hover:text-foreground text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
                             >
-                              ×
+                              <span aria-hidden="true">×</span>
                             </button>
                           </Badge>
                         ))}
@@ -619,9 +635,10 @@ export default function ProfilePage() {
                           <button
                             type="button"
                             onClick={() => removeEdu(idx)}
-                            className="absolute top-2 right-2 text-muted-foreground hover:text-destructive"
+                            aria-label={`Remove education record ${idx + 1}`}
+                            className="absolute top-2 right-2 text-muted-foreground hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
                           </button>
                           <div className="space-y-1 sm:col-span-2">
                             <Label className="text-xs">Degree / Diploma</Label>
@@ -688,9 +705,10 @@ export default function ProfilePage() {
                           <button
                             type="button"
                             onClick={() => removeWork(idx)}
-                            className="absolute top-2 right-2 text-muted-foreground hover:text-destructive"
+                            aria-label={`Remove work record ${idx + 1}`}
+                            className="absolute top-2 right-2 text-muted-foreground hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
                           </button>
                           <div className="space-y-1">
                             <Label className="text-xs">Hospital / Clinic</Label>

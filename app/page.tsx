@@ -120,16 +120,16 @@ export default async function HomePage() {
 
   return (
     <div className="relative overflow-hidden min-h-screen font-sans">
-      {/* Background blobs for premium glassmorphism feel */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] -z-10 pointer-events-none" />
-      <div className="absolute top-[20%] right-1/4 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[140px] -z-10 pointer-events-none" />
+      {/* Background blobs for premium glassmorphism feel — decorative only */}
+      <div aria-hidden="true" className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] -z-10 pointer-events-none" />
+      <div aria-hidden="true" className="absolute top-[20%] right-1/4 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[140px] -z-10 pointer-events-none" />
       
       {/* Hero Section */}
       <section className="relative pt-16 pb-20 md:pt-24 md:pb-28 border-b border-border/40 bg-gradient-to-b from-background via-background/60 to-transparent">
         <div className="container mx-auto max-w-6xl px-4 text-center">
           <div className="mx-auto max-w-4xl space-y-6">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary uppercase tracking-wider animate-pulse">
-              <Sparkles className="h-3.5 w-3.5" /> India&apos;s Premium Healthcare Job Portal
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary uppercase tracking-wider">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> India&apos;s Premium Healthcare Job Portal
             </span>
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl text-foreground leading-[1.15]">
               Find your dream job in <br />
@@ -140,8 +140,8 @@ export default async function HomePage() {
             <p className="mx-auto max-w-2xl text-base md:text-lg text-muted-foreground leading-relaxed">
               Explore 10,000+ verified active vacancies from top-tier multispecialty hospitals, clinics, and research laboratories.
             </p>
-            <p className="text-xs font-semibold text-muted-foreground/80 tracking-wide uppercase">
-              A Joint Venture of Deccanverse Technologies LLP & Vivako Consults Pvt. Ltd.
+            <p className="text-xs font-semibold text-muted-foreground tracking-wide uppercase">
+              A Joint Venture of Deccanverse Technologies LLP &amp; Vivako Consults Pvt. Ltd.
             </p>
           </div>
 

@@ -11,6 +11,10 @@ import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ApplicationStatusBadge } from "@/components/ui/status-badge";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { FormField } from "@/components/ui/form-field";
+import { Textarea } from "@/components/ui/textarea";
 import { formatDate, cn } from "@/lib/utils";
 import type { Job } from "@/types/api";
 
@@ -25,6 +29,7 @@ export default function JobDetailPage({
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [deleting, setDeleting] = React.useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   const [applied, setApplied] = React.useState(false);
   const [applying, setApplying] = React.useState(false);
   const [showForm, setShowForm] = React.useState(false);
@@ -143,7 +148,7 @@ export default function JobDetailPage({
   if (!ready || loading) {
     return (
       <div className="container mx-auto max-w-3xl px-4 py-10">
-        <div className="animate-pulse space-y-4">
+        <div className="animate-pulse motion-reduce:animate-none space-y-4" aria-busy="true" aria-label="Loading job details">
           <div className="h-8 w-2/3 rounded bg-muted" />
           <div className="h-4 w-1/3 rounded bg-muted" />
           <div className="h-48 rounded bg-muted" />
@@ -173,7 +178,12 @@ export default function JobDetailPage({
 
   async function onDelete() {
     if (!job) return;
-    if (!confirm(`Delete "${job.title}"? This cannot be undone.`)) return;
+    setShowDeleteDialog(true);
+  }
+
+  async function confirmDelete() {
+    if (!job) return;
+    setShowDeleteDialog(false);
     setDeleting(true);
     try {
       await jobsApi.delete(job.id);
@@ -193,7 +203,7 @@ export default function JobDetailPage({
         href="/jobs"
         className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "mb-4")}
       >
-        <ArrowLeft className="h-4 w-4" /> Back to jobs
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to jobs
       </Link>
 
       <Card>
@@ -203,14 +213,14 @@ export default function JobDetailPage({
               <CardTitle className="text-2xl">{job.title}</CardTitle>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
-                  <Building2 className="h-4 w-4" /> {job.company}
+                  <Building2 className="h-4 w-4" aria-hidden="true" /> {job.company}
                 </span>
                 <span className="inline-flex items-center gap-1">
-                  <MapPin className="h-4 w-4" /> {job.location}
+                  <MapPin className="h-4 w-4" aria-hidden="true" /> {job.location}
                 </span>
                 {job.salary && (
                   <span className="inline-flex items-center gap-1">
-                    <Banknote className="h-4 w-4" /> {job.salary}
+                    <Banknote className="h-4 w-4" aria-hidden="true" /> {job.salary}
                   </span>
                 )}
               </div>
@@ -233,7 +243,7 @@ export default function JobDetailPage({
                   onClick={onDelete}
                   disabled={deleting}
                 >
-                  <Trash2 className="h-4 w-4" /> {deleting ? "Deleting..." : "Delete"}
+                  <Trash2 className="h-4 w-4" aria-hidden="true" /> {deleting ? "Deleting..." : "Delete"}
                 </Button>
               </div>
             )}
@@ -251,31 +261,11 @@ export default function JobDetailPage({
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">Application Status:</span>
-                    {(() => {
-                      const statusConfig: Record<string, { label: string; className: string }> = {
-                        PENDING: { label: "Application Sent", className: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-                        SUBMITTED: { label: "Application Sent", className: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-                        APPLICATION_SENT: { label: "Application Sent", className: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-                        APPLIED: { label: "Application Sent", className: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-                        REVIEWING: { label: "Under Review", className: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
-                        INTERVIEW: { label: "Interview Stage", className: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
-                        INTERVIEW_STAGE: { label: "Interview Stage", className: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
-                        APPROVED: { label: "Accepted", className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
-                        ACCEPTED: { label: "Accepted", className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
-                        REJECTED: { label: "Application Rejected", className: "bg-red-500/10 text-red-600 border-red-500/20" },
-                        DENIED: { label: "Application Rejected", className: "bg-red-500/10 text-red-600 border-red-500/20" },
-                      };
-                      const st = statusConfig[myApplication.status] || { label: myApplication.status, className: "bg-muted text-muted-foreground" };
-                      return (
-                        <Badge className={`text-xs font-semibold px-2.5 py-1 ${st.className}`}>
-                          {st.label}
-                        </Badge>
-                      );
-                    })()}
+                    <ApplicationStatusBadge status={myApplication.status} />
                   </div>
-                  
+
                   {myApplication.employerMessage && (
-                    <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs text-foreground/90 max-w-xl">
+                    <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs text-foreground max-w-xl">
                       <p className="font-semibold text-[10px] text-primary uppercase tracking-wider mb-1">
                         Message from Employer
                       </p>
@@ -284,40 +274,45 @@ export default function JobDetailPage({
                   )}
                 </div>
               ) : showForm ? (
-                <form onSubmit={handleApply} className="space-y-4 rounded-lg bg-muted/40 p-4 border border-border">
+                <form onSubmit={handleApply} className="space-y-5 rounded-lg bg-surface p-4 border border-border" noValidate>
                   <h3 className="font-semibold text-base">Complete your application</h3>
-                  <div className="space-y-2">
-                    <label htmlFor="coverLetter" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
-                      Cover Letter
-                    </label>
-                    <textarea
-                      id="coverLetter"
-                      rows={4}
-                      value={coverLetter}
-                      onChange={(e) => setCoverLetter(e.target.value)}
-                      required
-                      placeholder="Explain why you are a great fit for this position..."
-                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    />
-                  </div>
 
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
+                  <FormField
+                    id="coverLetter"
+                    label="Cover Letter"
+                    hint="Briefly explain why you are a great fit for this position."
+                    required
+                  >
+                    {(props) => (
+                      <Textarea
+                        {...props}
+                        rows={4}
+                        value={coverLetter}
+                        onChange={(e) => setCoverLetter(e.target.value)}
+                        placeholder="Explain why you are a great fit for this position..."
+                      />
+                    )}
+                  </FormField>
+
+                  <fieldset className="space-y-2">
+                    <legend className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       How would you like to submit your resume?
-                    </label>
-                    <div className="grid gap-2 sm:grid-cols-3">
+                    </legend>
+                    <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Resume submission method">
                       {/* Option 1: Platform Resume */}
                       <button
                         type="button"
+                        role="radio"
+                        aria-checked={resumeOption === "auto"}
                         onClick={() => {
                           setResumeOption("auto");
                           setUseProfileResume(true);
                         }}
                         className={cn(
-                          "flex flex-col items-center justify-center p-3 rounded-lg border text-center transition-all cursor-pointer",
+                          "flex flex-col items-center justify-center p-3 rounded-lg border text-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                           resumeOption === "auto"
-                            ? "border-primary bg-primary/5 text-primary"
-                            : "border-border hover:bg-muted/50"
+                            ? "border-primary bg-primary/5 text-primary ring-1 ring-primary"
+                            : "border-border bg-card hover:bg-muted/50"
                         )}
                       >
                         <span className="font-bold text-xs">Auto-Generated PDF</span>
@@ -327,15 +322,17 @@ export default function JobDetailPage({
                       {/* Option 2: Upload File */}
                       <button
                         type="button"
+                        role="radio"
+                        aria-checked={resumeOption === "upload"}
                         onClick={() => {
                           setResumeOption("upload");
                           setUseProfileResume(false);
                         }}
                         className={cn(
-                          "flex flex-col items-center justify-center p-3 rounded-lg border text-center transition-all cursor-pointer",
+                          "flex flex-col items-center justify-center p-3 rounded-lg border text-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                           resumeOption === "upload"
-                            ? "border-primary bg-primary/5 text-primary"
-                            : "border-border hover:bg-muted/50"
+                            ? "border-primary bg-primary/5 text-primary ring-1 ring-primary"
+                            : "border-border bg-card hover:bg-muted/50"
                         )}
                       >
                         <span className="font-bold text-xs">Upload File</span>
@@ -345,22 +342,24 @@ export default function JobDetailPage({
                       {/* Option 3: Paste Text */}
                       <button
                         type="button"
+                        role="radio"
+                        aria-checked={resumeOption === "text"}
                         onClick={() => {
                           setResumeOption("text");
                           setUseProfileResume(false);
                         }}
                         className={cn(
-                          "flex flex-col items-center justify-center p-3 rounded-lg border text-center transition-all cursor-pointer",
+                          "flex flex-col items-center justify-center p-3 rounded-lg border text-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                           resumeOption === "text"
-                            ? "border-primary bg-primary/5 text-primary"
-                            : "border-border hover:bg-muted/50"
+                            ? "border-primary bg-primary/5 text-primary ring-1 ring-primary"
+                            : "border-border bg-card hover:bg-muted/50"
                         )}
                       >
                         <span className="font-bold text-xs">Paste Resume Text</span>
                         <span className="text-[10px] text-muted-foreground mt-1">Plaintext summary</span>
                       </button>
                     </div>
-                  </div>
+                  </fieldset>
 
                   {resumeOption === "auto" && (
                     <>
@@ -403,67 +402,72 @@ export default function JobDetailPage({
                   )}
 
                   {resumeOption === "upload" && (
-                    <div className="space-y-2">
-                      <label htmlFor="resumeFile" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
-                        Upload Resume Document (PDF, DOC, DOCX)
-                      </label>
-                      <div className="flex items-center justify-center w-full">
-                        <label
-                          htmlFor="resumeFile"
-                          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-background hover:bg-muted/30 border-border hover:border-primary/50 transition-colors"
-                        >
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
-                            <FileText className="w-8 h-8 mb-2 text-muted-foreground" />
-                            {resumeFile ? (
-                              <div className="text-sm font-semibold text-foreground truncate max-w-xs sm:max-w-md">
-                                {resumeFile.name} ({(resumeFile.size / 1024 / 1024).toFixed(2)} MB)
-                              </div>
-                            ) : (
-                              <>
-                                <p className="mb-1 text-sm text-foreground">
-                                  <span className="font-semibold">Click to upload</span> or drag and drop
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  PDF, DOC, or DOCX (Max 5MB)
-                                </p>
-                              </>
-                            )}
-                          </div>
-                          <input
-                            id="resumeFile"
-                            type="file"
-                            accept=".pdf,.doc,.docx"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                if (file.size > 5 * 1024 * 1024) {
-                                  alert("File size must be less than 5MB");
-                                  return;
+                    <FormField
+                      id="resumeFile"
+                      label="Upload Resume Document"
+                      hint="PDF, DOC, or DOCX — maximum 5MB."
+                    >
+                      {() => (
+                        <div className="flex items-center justify-center w-full">
+                          <label
+                            htmlFor="resumeFile"
+                            className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-background hover:bg-muted/30 border-border hover:border-primary/50 transition-colors focus-within:ring-2 focus-within:ring-ring"
+                          >
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
+                              <FileText className="w-8 h-8 mb-2 text-muted-foreground" aria-hidden="true" />
+                              {resumeFile ? (
+                                <div className="text-sm font-semibold text-foreground truncate max-w-xs sm:max-w-md">
+                                  {resumeFile.name} ({(resumeFile.size / 1024 / 1024).toFixed(2)} MB)
+                                </div>
+                              ) : (
+                                <>
+                                  <p className="mb-1 text-sm text-foreground">
+                                    <span className="font-semibold">Click to upload</span> or drag and drop
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    PDF, DOC, or DOCX (Max 5MB)
+                                  </p>
+                                </>
+                              )}
+                            </div>
+                            <input
+                              id="resumeFile"
+                              type="file"
+                              accept=".pdf,.doc,.docx"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  if (file.size > 5 * 1024 * 1024) {
+                                    alert("File size must be less than 5MB");
+                                    return;
+                                  }
+                                  setResumeFile(file);
                                 }
-                                setResumeFile(file);
-                              }
-                            }}
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
-                    </div>
+                              }}
+                              className="sr-only"
+                            />
+                          </label>
+                        </div>
+                      )}
+                    </FormField>
                   )}
 
                   {resumeOption === "text" && (
-                    <div className="space-y-2">
-                      <label htmlFor="resumeDetails" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
-                        Resume / Experience Summary
-                      </label>
-                      <textarea
-                        id="resumeDetails"
-                        rows={5}
-                        value={resumeDetails}
-                        onChange={(e) => setResumeDetails(e.target.value)}
-                        placeholder="Paste your resume details, employment history, or key skills..."
-                        className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      />
-                    </div>
+                    <FormField
+                      id="resumeDetails"
+                      label="Resume / Experience Summary"
+                      hint="Paste your resume details, employment history, or key skills."
+                    >
+                      {(props) => (
+                        <Textarea
+                          {...props}
+                          rows={5}
+                          value={resumeDetails}
+                          onChange={(e) => setResumeDetails(e.target.value)}
+                          placeholder="Paste your resume details, employment history, or key skills..."
+                        />
+                      )}
+                    </FormField>
                   )}
 
                   <div className="flex gap-2 justify-end pt-2">
@@ -501,16 +505,27 @@ export default function JobDetailPage({
 
           <div className="mt-8 grid gap-3 border-t border-border pt-6 text-sm text-muted-foreground sm:grid-cols-2">
             <div className="inline-flex items-center gap-2">
-              <Briefcase className="h-4 w-4" />
+              <Briefcase className="h-4 w-4" aria-hidden="true" />
               <span>Posted {formatDate(job.postedDate ?? job.createdDate)}</span>
             </div>
             <div className="inline-flex items-center gap-2">
-              <Clock className="h-4 w-4" />
+              <Clock className="h-4 w-4" aria-hidden="true" />
               <span>Updated {formatDate(job.lastModifiedDate ?? job.postedDate ?? job.createdDate)}</span>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onCancel={() => setShowDeleteDialog(false)}
+        title="Delete this job?"
+        description={`You are about to permanently delete "${job.title}". This action cannot be undone and applicants will lose access immediately.`}
+        confirmLabel={deleting ? "Deleting..." : "Delete job"}
+        cancelLabel="Keep job"
+        destructive
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }
