@@ -174,7 +174,8 @@ export default function JobDetailPage({
   }
 
   const canManage =
-    user?.roles.includes("ADMIN") || user?.roles.includes("EMPLOYER");
+    user?.roles.includes("ADMIN") ||
+    (user?.roles.includes("EMPLOYER") && job.employerId === user.id);
 
   async function onDelete() {
     if (!job) return;

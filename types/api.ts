@@ -49,6 +49,7 @@ export interface Job {
   postedDate?: string;
   createdDate: string;
   lastModifiedDate: string;
+  employerId?: number;
 }
 
 export interface JobPayload {
