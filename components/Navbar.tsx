@@ -22,11 +22,11 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur">
-      <div className="container mx-auto grid h-16 max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-4">
+      <div className="container mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:grid md:grid-cols-[1fr_auto_1fr] md:gap-4">
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 text-lg font-semibold shrink-0 justify-self-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md px-1"
+          className="flex items-center gap-2 text-lg font-semibold shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md px-1"
           aria-label="HealthJobsNow home"
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary" aria-hidden="true">
@@ -60,11 +60,11 @@ export function Navbar() {
           <NavAuthSection />
         </div>
 
-        {/* Mobile hamburger button — sits in the right column on small screens */}
+        {/* Mobile hamburger button — pushed to the far right on small screens */}
         <button
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
-          className="md:hidden col-start-3 flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="md:hidden flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileOpen}
           aria-controls="mobile-menu"
@@ -77,10 +77,10 @@ export function Navbar() {
       {mobileOpen && (
         <div
           id="mobile-menu"
-          className="border-t border-border bg-background/95 backdrop-blur md:hidden"
+          className="border-t border-border bg-background md:hidden"
         >
-          <div className="container mx-auto max-w-6xl space-y-4 px-4 py-4">
-            <nav aria-label="Mobile primary" className="flex flex-col gap-2 text-sm font-medium">
+          <div className="container mx-auto max-w-6xl px-4 py-3">
+            <nav aria-label="Mobile primary" className="flex flex-col gap-1 text-sm font-medium">
               {NAV_LINKS.map((link) => {
                 const active = pathname === link.href || pathname.startsWith(link.href + "/");
                 return (
@@ -89,8 +89,8 @@ export function Navbar() {
                     href={link.href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "rounded-md px-3 py-2 hover:bg-muted hover:text-foreground transition-colors",
-                      active ? "bg-muted text-foreground" : "text-muted-foreground"
+                      "rounded-lg px-3 py-2.5 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors",
+                      active ? "bg-primary/10 text-primary font-semibold" : "text-foreground/80"
                     )}
                   >
                     {link.label}
@@ -99,9 +99,9 @@ export function Navbar() {
               })}
             </nav>
 
-            <div className="border-t border-border" aria-hidden="true" />
+            <div className="my-3 h-px bg-border" aria-hidden="true" />
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               <NavAuthSection mobile />
             </div>
           </div>

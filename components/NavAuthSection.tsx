@@ -54,8 +54,8 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
         <Link
           href="/login"
           className={cn(
-            buttonVariants({ variant: "ghost", size: "sm" }),
-            mobile ? "w-full justify-start" : ""
+            buttonVariants({ variant: "outline" }),
+            mobile ? "h-11 w-full justify-center text-sm" : "h-9 px-3 text-sm"
           )}
         >
           Log in
@@ -63,8 +63,8 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
         <Link
           href="/register"
           className={cn(
-            buttonVariants({ size: "sm" }),
-            mobile ? "w-full justify-center" : ""
+            buttonVariants(),
+            mobile ? "h-11 w-full justify-center text-sm" : "h-9 px-3 text-sm"
           )}
         >
           Sign up
@@ -78,8 +78,14 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
   const isSeeker = user.roles.includes("JOB_SEEKER");
   const canPost = isAdmin || (isEmployer && myCompany?.status === "APPROVED");
 
-  const wrapperClass = mobile ? "flex flex-col gap-2" : "flex items-center gap-2";
-  const buttonFullWidth = mobile ? "w-full justify-start" : "";
+  const wrapperClass = mobile ? "flex flex-col gap-1.5" : "flex items-center gap-1";
+  // On mobile use larger touch targets; on desktop use compact sm buttons.
+  const linkClass = mobile
+    ? "h-11 w-full justify-start rounded-lg px-3 text-sm"
+    : "h-9 px-3 text-sm";
+  const primaryClass = mobile
+    ? "h-11 w-full justify-center rounded-lg text-sm"
+    : "h-9 px-3 text-sm";
 
   return (
     <div className={wrapperClass}>
@@ -87,9 +93,9 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
         <Link
           href="/admin"
           className={cn(
-            buttonVariants({ variant: "ghost", size: "sm" }),
-            "text-primary hover:text-primary",
-            buttonFullWidth
+            buttonVariants({ variant: "ghost" }),
+            linkClass,
+            "text-primary hover:text-primary"
           )}
         >
           <Shield className="h-4 w-4" aria-hidden="true" />
@@ -98,10 +104,9 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
       )}
       {isEmployer && !canPost && (
         <Button
-          size="sm"
           variant="secondary"
           onClick={() => setShowToast(true)}
-          className={mobile ? "w-full justify-center" : ""}
+          className={primaryClass}
         >
           <PlusCircle className="h-4 w-4" aria-hidden="true" />
           Post a Job
@@ -110,10 +115,7 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
       {canPost && (
         <Link
           href="/post-job"
-          className={cn(
-            buttonVariants({ size: "sm" }),
-            mobile ? "w-full justify-center" : ""
-          )}
+          className={cn(buttonVariants(), primaryClass)}
         >
           <PlusCircle className="h-4 w-4" aria-hidden="true" />
           Post a Job
@@ -122,10 +124,7 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
       {isEmployer && (
         <Link
           href="/company"
-          className={cn(
-            buttonVariants({ variant: "ghost", size: "sm" }),
-            buttonFullWidth
-          )}
+          className={cn(buttonVariants({ variant: "ghost" }), linkClass)}
         >
           <Building2 className="h-4 w-4" aria-hidden="true" />
           My Company
@@ -134,10 +133,7 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
       {!isSeeker && (
         <Link
           href="/dashboard"
-          className={cn(
-            buttonVariants({ variant: "ghost", size: "sm" }),
-            buttonFullWidth
-          )}
+          className={cn(buttonVariants({ variant: "ghost" }), linkClass)}
         >
           <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
           Dashboard
@@ -146,10 +142,7 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
       {isSeeker && (
         <Link
           href="/my-jobs"
-          className={cn(
-            buttonVariants({ variant: "ghost", size: "sm" }),
-            buttonFullWidth
-          )}
+          className={cn(buttonVariants({ variant: "ghost" }), linkClass)}
         >
           <Briefcase className="h-4 w-4" aria-hidden="true" />
           My Jobs
@@ -157,19 +150,15 @@ export function NavAuthSection({ mobile = false }: NavAuthSectionProps) {
       )}
       <Link
         href="/profile"
-        className={cn(
-          buttonVariants({ variant: "ghost", size: "sm" }),
-          buttonFullWidth
-        )}
+        className={cn(buttonVariants({ variant: "ghost" }), linkClass)}
       >
         <UserIcon className="h-4 w-4" aria-hidden="true" />
         {user.firstName}
       </Link>
       <Button
         variant="outline"
-        size="sm"
-        className={mobile ? "w-full justify-center" : ""}
         onClick={() => setShowLogoutConfirm(true)}
+        className={primaryClass}
       >
         <LogOut className="h-4 w-4" aria-hidden="true" />
         Logout
