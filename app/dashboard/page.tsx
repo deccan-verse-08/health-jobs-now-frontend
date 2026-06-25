@@ -18,6 +18,9 @@ import {
   ScrollText,
   AlertTriangle,
   X,
+  Crown,
+  Lock,
+  CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { jobsApi, applicationsApi, companyApi, ApiError } from "@/lib/api";
@@ -27,7 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ApplicationStatusBadge } from "@/components/ui/status-badge";
 import { formatDate, cn } from "@/lib/utils";
-import type { Job, JobApplication, Company } from "@/types/api";
+import type { Job, JobApplication, Company, TierInfo } from "@/types/api";
 
 /* ---------- Expandable detail section component ---------- */
 function ExpandableSection({
@@ -74,6 +77,7 @@ export default function DashboardPage() {
   const [myJobs, setMyJobs] = React.useState<Job[]>([]);
   const [applications, setApplications] = React.useState<JobApplication[]>([]);
   const [myCompany, setMyCompany] = React.useState<Company | null>(null);
+  const [tierInfo, setTierInfo] = React.useState<TierInfo | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [showToast, setShowToast] = React.useState(false);
@@ -134,13 +138,20 @@ export default function DashboardPage() {
           const appsResponse = await applicationsApi.employerApplications();
           setApplications(appsResponse);
 
-          // Fetch employer's company
-          if (user.roles.includes("EMPLOYER")) {
+          // Fetch employer's company and tier info
+          if (user.roles.includes("EMPLOYER") || user.roles.includes("ADMIN")) {
             try {
               const company = await companyApi.getMyCompany();
               setMyCompany(company);
             } catch {
               setMyCompany(null);
+            }
+
+            try {
+              const tInfo = await companyApi.getMyTierInfo();
+              setTierInfo(tInfo);
+            } catch {
+              setTierInfo(null);
             }
           }
         }
@@ -204,22 +215,128 @@ export default function DashboardPage() {
                 Manage your postings and view applicant details.
               </p>
             </div>
-            {myCompany && myCompany.status === "APPROVED" ? (
-               <Link href="/post-job" className={cn(buttonVariants())}>
-                 <PlusCircle className="h-4 w-4" />
-                 Post a Job
-               </Link>
-             ) : (
-              <Button
-                variant="secondary"
-                onClick={() => setShowToast(true)}
-                className="opacity-60"
-              >
-                <PlusCircle className="h-4 w-4" />
-                Post a Job
-              </Button>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {myCompany && myCompany.status === "APPROVED" && tierInfo?.resumeDbAccess && (
+                <Link
+                  href="/admin/resumes"
+                  className={cn(buttonVariants({ variant: "outline" }), "gap-1.5")}
+                >
+                  <FileText className="h-4 w-4" aria-hidden="true" />
+                  Resume Database
+                </Link>
+              )}
+              {myCompany && myCompany.status === "APPROVED" ? (
+                <Link href="/post-job" className={cn(buttonVariants(), "gap-1.5")}>
+                  <PlusCircle className="h-4 w-4" aria-hidden="true" />
+                  Post a Job
+                </Link>
+              ) : (
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowToast(true)}
+                  className="opacity-60 gap-1.5"
+                >
+                  <PlusCircle className="h-4 w-4" aria-hidden="true" />
+                  Post a Job
+                </Button>
+              )}
+            </div>
           </div>
+
+          {/* Tier Status Card */}
+          {user?.roles.includes("EMPLOYER") && tierInfo && (
+            <Card className="border border-violet-500/20 bg-gradient-to-r from-violet-500/5 to-primary/5 shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={cn(
+                      "flex h-12 w-12 items-center justify-center rounded-lg",
+                      tierInfo.tier === "PRO" ? "bg-amber-500/10 text-amber-500" : "bg-primary/10 text-primary"
+                    )}>
+                      <Crown className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Subscription Plan</span>
+                        <Badge variant={tierInfo.tier === "PRO" ? "success" : "secondary"}>
+                          {tierInfo.tier}
+                        </Badge>
+                      </div>
+                      <h2 className="mt-0.5 text-xl font-bold tracking-tight">
+                        {tierInfo.tier === "PRO" ? "Premium Employer Plan" : "Basic Free Plan"}
+                      </h2>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 min-w-[200px] flex-1 max-w-sm">
+                    <div className="flex justify-between text-xs font-semibold">
+                      <span>Job Postings Usage</span>
+                      <span>{tierInfo.jobsPostedThisMonth} / {tierInfo.maxJobsPerMonth} this month</span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                      <div
+                        className={cn(
+                          "h-full rounded-full transition-all duration-300",
+                          tierInfo.jobsPostedThisMonth >= tierInfo.maxJobsPerMonth ? "bg-destructive" : "bg-primary"
+                        )}
+                        style={{ width: `${Math.min(100, (tierInfo.jobsPostedThisMonth / tierInfo.maxJobsPerMonth) * 100)}%` }}
+                      />
+                    </div>
+                    {tierInfo.tier === "PRO" && (
+                      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                        <span>Featured Listings used:</span>
+                        <span>{tierInfo.featuredUsedThisMonth} / {tierInfo.featuredPerMonth}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                        <span>Visible candidates: {tierInfo.maxVisibleApplicants}/job</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        {tierInfo.resumeDbAccess ? (
+                          <Link
+                            href="/admin/resumes"
+                            className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            <span>Resume DB access</span>
+                          </Link>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            <Lock className="h-3 w-3 text-amber-500" />
+                            <span>Resume DB access</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        {tierInfo.dashboardAnalytics ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                        ) : (
+                          <Lock className="h-3 w-3 text-amber-500" />
+                        )}
+                        <span>Dashboard Analytics</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                        <span>Job duration: {tierInfo.jobDurationDays} days</span>
+                      </div>
+                    </div>
+                    {tierInfo.tier === "BASIC" && (
+                      <Button asChild size="sm" className="bg-violet-600 hover:bg-violet-700 text-white gap-1 shrink-0">
+                        <a href="mailto:info.deccanverse.pune@gmail.com?subject=Upgrade%20to%20Pro%20-%20HealthJobsNow">
+                          Upgrade to Pro
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* No company registered */}
           {user?.roles.includes("EMPLOYER") && !myCompany && (
@@ -384,15 +501,27 @@ export default function DashboardPage() {
                         <div className="grid gap-3 sm:grid-cols-2 pt-3 border-t border-border text-sm">
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <Mail className="h-4 w-4 text-primary/70 shrink-0" />
-                            <a href={`mailto:${app.seeker.email}`} className="hover:underline text-foreground">
-                              {app.seeker.email}
-                            </a>
+                            {app.seeker.email === "[Upgrade to Pro]" ? (
+                              <span className="text-muted-foreground flex items-center gap-1 font-medium text-xs">
+                                <Lock className="h-3 w-3 text-amber-500" /> [Upgrade to Pro]
+                              </span>
+                            ) : (
+                              <a href={`mailto:${app.seeker.email}`} className="hover:underline text-foreground">
+                                {app.seeker.email}
+                              </a>
+                            )}
                           </div>
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <Phone className="h-4 w-4 text-primary/70 shrink-0" />
-                            <span className="text-foreground">
-                              {app.seeker.mobileNumber || "No phone number listed"}
-                            </span>
+                            {app.seeker.mobileNumber === "[Upgrade to Pro]" ? (
+                              <span className="text-muted-foreground flex items-center gap-1 font-medium text-xs">
+                                <Lock className="h-3 w-3 text-amber-500" /> [Upgrade to Pro]
+                              </span>
+                            ) : (
+                              <span className="text-foreground">
+                                {app.seeker.mobileNumber || "No phone number listed"}
+                              </span>
+                            )}
                           </div>
                         </div>
 
@@ -402,17 +531,23 @@ export default function DashboardPage() {
                              <span className="font-semibold text-foreground">
                                Uploaded Resume Document
                              </span>
-                             <a
-                               href={app.resumeUrl}
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               className={cn(
-                                 buttonVariants({ variant: "outline", size: "sm" }),
-                                 "ml-auto"
-                               )}
-                             >
-                               View Resume
-                             </a>
+                             {app.resumeUrl === "[Upgrade to Pro]" ? (
+                               <span className="ml-auto text-muted-foreground flex items-center gap-1 font-medium text-xs">
+                                 <Lock className="h-3 w-3 text-amber-500" /> [Upgrade to Pro]
+                               </span>
+                             ) : (
+                               <a
+                                 href={app.resumeUrl}
+                                 target="_blank"
+                                 rel="noopener noreferrer"
+                                 className={cn(
+                                   buttonVariants({ variant: "outline", size: "sm" }),
+                                   "ml-auto"
+                                 )}
+                               >
+                                 View Resume
+                               </a>
+                             )}
                            </div>
                         )}
 

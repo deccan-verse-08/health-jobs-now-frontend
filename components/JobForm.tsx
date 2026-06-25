@@ -22,6 +22,7 @@ const empty: JobPayload = {
   salary: "",
   employmentType: "Full-Time",
   experienceLevel: "Entry-Level",
+  applicationDeadline: "",
 };
 
 export function JobForm({ initial, mode }: { initial?: Job; mode: "create" | "edit" }) {
@@ -37,8 +38,10 @@ export function JobForm({ initial, mode }: { initial?: Job; mode: "create" | "ed
           salary: initial.salary,
           employmentType: initial.employmentType,
           experienceLevel: initial.experienceLevel,
+          featured: initial.featured,
+          applicationDeadline: initial.applicationDeadline,
         }
-      : empty
+      : { ...empty, featured: false, applicationDeadline: "" }
   );
   const [error, setError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
@@ -64,6 +67,10 @@ export function JobForm({ initial, mode }: { initial?: Job; mode: "create" | "ed
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    if (!form.applicationDeadline) {
+      setError("Application deadline is required");
+      return;
+    }
     setSubmitting(true);
     try {
       if (mode === "create") {
@@ -196,6 +203,22 @@ export function JobForm({ initial, mode }: { initial?: Job; mode: "create" | "ed
               )}
             </FormField>
 
+            <FormField label="Application Deadline" required className="sm:col-span-2">
+              {(props) => (
+                <Input
+                  {...props}
+                  type="date"
+                  value={form.applicationDeadline ? form.applicationDeadline.split("T")[0] : ""}
+                  onChange={(e) => {
+                    const dateVal = e.target.value;
+                    update("applicationDeadline", dateVal ? `${dateVal}T23:59:59` : "");
+                  }}
+                  required
+                  min={new Date().toISOString().split("T")[0]}
+                />
+              )}
+            </FormField>
+
             <FormField label="Description" required className="sm:col-span-2">
               {(props) => (
                 <Textarea
@@ -208,6 +231,31 @@ export function JobForm({ initial, mode }: { initial?: Job; mode: "create" | "ed
                 />
               )}
             </FormField>
+
+            {/* Featured Listing (Pro Tier only) */}
+            <div className="sm:col-span-2 border-t border-border pt-4 mt-2">
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="featured"
+                  checked={!!form.featured}
+                  disabled={myCompany?.tier !== "PRO"}
+                  onChange={(e) => update("featured", e.target.checked)}
+                  className="mt-1.5 rounded border-input bg-background focus:ring-primary h-4 w-4 text-primary cursor-pointer disabled:cursor-not-allowed"
+                />
+                <div className="text-sm">
+                  <Label htmlFor="featured" className="font-semibold text-foreground flex items-center gap-1.5 cursor-pointer">
+                    Featured Job Listing
+                    {myCompany?.tier !== "PRO" && (
+                      <span className="inline-flex items-center rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-500 border border-amber-500/20 font-mono">PRO ONLY</span>
+                    )}
+                  </Label>
+                  <p className="text-muted-foreground text-xs mt-0.5">
+                    Featured jobs are highlighted and stay at the top of search results. Pro plan includes 1 featured listing per month.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="justify-end gap-2">

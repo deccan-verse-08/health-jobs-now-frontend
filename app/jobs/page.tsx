@@ -13,6 +13,8 @@ type SearchParams = {
   sortBy?: string;
   direction?: "asc" | "desc";
   q?: string;
+  location?: string;
+  experience?: string;
 };
 
 const PAGE_SIZE = 10;
@@ -29,6 +31,12 @@ async function fetchJobs(params: SearchParams) {
   url.searchParams.set("direction", direction);
   if (params.q) {
     url.searchParams.set("q", params.q);
+  }
+  if (params.location) {
+    url.searchParams.set("location", params.location);
+  }
+  if (params.experience) {
+    url.searchParams.set("experience", params.experience);
   }
 
   try {
@@ -58,6 +66,8 @@ export default async function JobsPage({
     const u = new URLSearchParams();
     u.set("page", String(p));
     if (sp.q) u.set("q", sp.q);
+    if (sp.location) u.set("location", sp.location);
+    if (sp.experience) u.set("experience", sp.experience);
     u.set("sortBy", currentSortBy);
     u.set("direction", currentDirection);
     return `/jobs?${u.toString()}`;
@@ -67,6 +77,8 @@ export default async function JobsPage({
       currentSortBy === sortBy && currentDirection === "desc" ? "asc" : "desc";
     const u = new URLSearchParams();
     if (sp.q) u.set("q", sp.q);
+    if (sp.location) u.set("location", sp.location);
+    if (sp.experience) u.set("experience", sp.experience);
     u.set("sortBy", sortBy);
     u.set("direction", direction);
     return `/jobs?${u.toString()}`;

@@ -1,14 +1,14 @@
 import Link from "next/link";
-import { Briefcase, MapPin, Building2, Clock, Banknote, ArrowRight } from "lucide-react";
+import { Briefcase, MapPin, Building2, Clock, Banknote, ArrowRight, Crown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button-variants";
-import { formatDate, cn } from "@/lib/utils";
+import { formatDate, cn, getDeadlineCountdown } from "@/lib/utils";
 import type { Job } from "@/types/api";
 
 export function JobCard({ job }: { job: Job }) {
   return (
-    <Card className="transition-shadow hover:shadow-md">
+    <Card className={cn("transition-shadow hover:shadow-md", job.featured && "border-amber-500/30 bg-amber-500/[0.01]")}>
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
@@ -32,8 +32,32 @@ export function JobCard({ job }: { job: Job }) {
             </div>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
+            {job.featured && (
+              <Badge variant="warning" className="bg-amber-500/10 text-amber-600 border-amber-500/20 font-semibold flex items-center gap-0.5">
+                <Crown className="h-3 w-3 shrink-0" /> Featured
+              </Badge>
+            )}
             {job.employmentType && <Badge variant="default">{job.employmentType}</Badge>}
             {job.experienceLevel && <Badge variant="secondary">{job.experienceLevel}</Badge>}
+            {job.applicationDeadline && (
+              (() => {
+                const countdown = getDeadlineCountdown(job.applicationDeadline);
+                if (!countdown) return null;
+                return (
+                  <Badge
+                    variant={countdown.urgent ? "destructive" : "outline"}
+                    className={cn(
+                      "font-semibold flex items-center gap-0.5",
+                      countdown.urgent && "bg-destructive/10 text-destructive border-destructive/20 animate-pulse motion-reduce:animate-none",
+                      countdown.closed && "bg-muted text-muted-foreground border-border"
+                    )}
+                  >
+                    <Clock className="h-3 w-3 shrink-0" aria-hidden="true" />
+                    {countdown.text}
+                  </Badge>
+                );
+              })()
+            )}
           </div>
         </div>
       </CardHeader>

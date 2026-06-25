@@ -15,7 +15,7 @@ import { ApplicationStatusBadge } from "@/components/ui/status-badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { FormField } from "@/components/ui/form-field";
 import { Textarea } from "@/components/ui/textarea";
-import { formatDate, cn } from "@/lib/utils";
+import { formatDate, cn, getDeadlineCountdown } from "@/lib/utils";
 import type { Job } from "@/types/api";
 
 export default function JobDetailPage({
@@ -228,6 +228,25 @@ export default function JobDetailPage({
               <div className="flex flex-wrap gap-2 pt-1">
                 {job.employmentType && <Badge variant="default">{job.employmentType}</Badge>}
                 {job.experienceLevel && <Badge variant="secondary">{job.experienceLevel}</Badge>}
+                {job.applicationDeadline && (
+                  (() => {
+                    const countdown = getDeadlineCountdown(job.applicationDeadline);
+                    if (!countdown) return null;
+                    return (
+                      <Badge
+                        variant={countdown.urgent ? "destructive" : "outline"}
+                        className={cn(
+                          "font-semibold flex items-center gap-0.5",
+                          countdown.urgent && "bg-destructive/10 text-destructive border-destructive/20 animate-pulse motion-reduce:animate-none",
+                          countdown.closed && "bg-muted text-muted-foreground border-border"
+                        )}
+                      >
+                        <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        {countdown.text}
+                      </Badge>
+                    );
+                  })()
+                )}
               </div>
             </div>
             {canManage && (
@@ -258,7 +277,11 @@ export default function JobDetailPage({
 
           {(user?.roles.includes("JOB_SEEKER") || (user?.roles as string[] | undefined)?.includes("ROLE_JOB_SEEKER")) && (
             <div className="mt-6 border-t border-border pt-6">
-              {applied && myApplication ? (
+              {job.applicationDeadline && getDeadlineCountdown(job.applicationDeadline)?.closed === true ? (
+                <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive font-medium text-center">
+                  This job is no longer accepting applications (Deadline passed).
+                </div>
+              ) : applied && myApplication ? (
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">Application Status:</span>

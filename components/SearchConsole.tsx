@@ -22,12 +22,20 @@ export function SearchConsole() {
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    let query = "";
-    if (designation.trim()) query = designation.trim();
-    else if (location.trim()) query = location.trim();
+    const params = new URLSearchParams();
+    if (designation.trim()) {
+      params.set("q", designation.trim());
+    }
+    if (location.trim()) {
+      params.set("location", location.trim());
+    }
+    if (experience.trim()) {
+      params.set("experience", experience.trim());
+    }
 
-    if (query) {
-      router.push(`/jobs?q=${encodeURIComponent(query)}`);
+    const queryStr = params.toString();
+    if (queryStr) {
+      router.push(`/jobs?${queryStr}`);
     } else {
       router.push("/jobs");
     }

@@ -60,10 +60,10 @@ export default function AboutPage() {
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
             A healthcare-only job platform built by{" "}
-            <span className="font-semibold text-foreground">Deccanverse
+            <span className="font-bold text-foreground">Deccanverse
             Technologies LLP</span>{" "}
-            and{" "}
-            <span className="font-semibold text-foreground">Vivako
+            and marketed by{" "}
+            <span className="font-bold text-foreground">Vivako
             Consults</span>{" "}
             to make hiring in Indian healthcare faster, fairer, and more
             transparent.
@@ -95,10 +95,10 @@ export default function AboutPage() {
           <h2 className="text-2xl font-bold tracking-tight">Our mission</h2>
           <p className="mt-3 text-base text-muted-foreground">
             Healthcare hiring is fragmented. Hospitals post on generic boards,
-            candidates drown in irrelevant roles, and the actual work —
-            verifying credentials, screening for fit, scheduling interviews —
-            falls on already-stretched HR teams. HealthJobsNow is a focused
-            alternative: every job on the platform is in healthcare, every
+            candidates drown in irrelevant roles, and the actual work
+            verifying credentials, screening for fit, scheduling interviews
+            falls on already-stretched HR teams. <br/>HealthJobsNow is a focused
+            alternative; every job on the platform is in healthcare, every
             candidate&apos;s profile is structured for clinical hiring, and
             every application lands in a single, trackable inbox.
           </p>
@@ -199,7 +199,7 @@ export default function AboutPage() {
             Get in touch
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Questions, partnerships, or support — we&apos;d love to hear from
+            Questions, partnerships, or support we&apos;d love to hear from
             you.
           </p>
           <div className="mt-4 flex flex-col gap-2 text-sm">

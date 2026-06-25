@@ -50,6 +50,9 @@ export interface Job {
   createdDate: string;
   lastModifiedDate: string;
   employerId?: number;
+  featured?: boolean;
+  expiresAt?: string;
+  applicationDeadline?: string;
 }
 
 export interface JobPayload {
@@ -60,6 +63,8 @@ export interface JobPayload {
   salary: string;
   employmentType: string;
   experienceLevel: string;
+  featured?: boolean;
+  applicationDeadline?: string;
 }
 
 export interface PageResponse<T> {
@@ -109,6 +114,8 @@ export interface Company {
   creatorId: number;
   createdDate?: string;
   lastModifiedDate?: string;
+  tier?: "BASIC" | "PRO";
+  tierUpdatedDate?: string;
 }
 
 export interface CompanyPayload {
@@ -131,5 +138,23 @@ export interface UserProfile {
   educationHistory?: string; // Serialized JSON string of degrees
   workHistory?: string; // Serialized JSON string of jobs
   generatedResumeUrl?: string;
+}
+
+export interface TierInfo {
+  tier: "BASIC" | "PRO";
+  maxJobsPerMonth: number;
+  jobsPostedThisMonth: number;
+  maxVisibleApplicants: number;
+  jobDurationDays: number;
+  featuredPerMonth: number;
+  featuredUsedThisMonth: number;
+  fullApplicantProfile: boolean;
+  dashboardAnalytics: boolean;
+  resumeDbAccess: boolean;
+}
+
+export interface CandidateResume {
+  user: User;
+  profile: UserProfile | null;
 }
 

@@ -13,6 +13,8 @@ import type {
   Company,
   CompanyPayload,
   UserProfile,
+  TierInfo,
+  CandidateResume,
 } from "@/types/api";
 
 export class ApiError extends Error {
@@ -120,6 +122,11 @@ export const adminApi = {
       method: "PUT",
       body: JSON.stringify({ status }),
     }),
+  updateCompanyTier: (id: number, tier: "BASIC" | "PRO") =>
+    request<Company>(`/api/admin/companies/${id}/tier`, {
+      method: "PUT",
+      body: JSON.stringify({ tier }),
+    }),
 };
 
 export const companyApi = {
@@ -130,6 +137,7 @@ export const companyApi = {
   update: (id: number, payload: CompanyPayload) =>
     request<Company>(`/api/companies/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
   list: () => request<Company[]>("/api/companies"),
+  getMyTierInfo: () => request<TierInfo>("/api/companies/my/tier-info"),
 };
 
 export const applicationsApi = {
@@ -156,6 +164,10 @@ export const applicationsApi = {
 
 export const profilesApi = {
   getMyProfile: () => request<UserProfile>("/api/profiles/my", { method: "GET" }),
+  getProfileByUserId: (userId: number) =>
+    request<UserProfile>(`/api/profiles/user/${userId}`, { method: "GET" }),
+  listCandidates: () =>
+    request<CandidateResume[]>("/api/profiles/candidates", { method: "GET" }),
   updateMyProfile: (payload: UserProfile) =>
     request<UserProfile>("/api/profiles/my", {
       method: "PUT",

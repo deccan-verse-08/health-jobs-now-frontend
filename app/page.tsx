@@ -18,6 +18,7 @@ import { JobList } from "@/components/JobList";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { cn } from "@/lib/utils";
 import { SearchConsole } from "@/components/SearchConsole";
+import { SubmitResumeCTA } from "@/components/SubmitResumeCTA";
 import type { Job, PageResponse } from "@/types/api";
 
 async function fetchRecentJobs(): Promise<Job[]> {
@@ -300,32 +301,7 @@ export default async function HomePage() {
         <div className="container mx-auto max-w-6xl px-4">
           <div className="grid gap-8 md:grid-cols-2">
             {/* Seeker CTA Card */}
-            <div className="group rounded-3xl border border-border/60 bg-card/50 backdrop-blur p-8 shadow-sm hover:shadow-xl hover:border-primary/30 transition duration-300 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
-                  <Award className="h-6 w-6" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-foreground">
-                    Get Discovered by Top Recruiters
-                  </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Upload your medical resume and experience details to let recruitment specialists match you with premium healthcare facilities.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-8">
-                <Link
-                  href="/my-jobs"
-                  className={cn(
-                    buttonVariants({ size: "lg" }),
-                    "w-full sm:w-auto font-semibold shadow-md rounded-2xl"
-                  )}
-                >
-                  Submit Resume <ArrowRight className="h-4 w-4 ml-1.5" />
-                </Link>
-              </div>
-            </div>
+            <SubmitResumeCTA />
 
             {/* Recruiter CTA Card */}
             <div className="group rounded-3xl border border-border/60 bg-card/50 backdrop-blur p-8 shadow-sm hover:shadow-xl hover:border-emerald-500/30 transition duration-300 flex flex-col justify-between">

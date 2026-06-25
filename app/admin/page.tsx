@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { UserStatusBadge, CompanyStatusBadge } from "@/components/ui/status-badge";
 import { User, Job, Company } from "@/types/api";
-import { Shield, Users, Briefcase, Building2, Plus, Edit, Trash2, Search, ArrowLeft, Check, X, Ban, UserCheck } from "lucide-react";
+import { Shield, Users, Briefcase, Building2, Plus, Edit, Trash2, Search, ArrowLeft, Check, X, Ban, UserCheck, FileText } from "lucide-react";
 
 type Tab = "users" | "jobs" | "companies";
 
@@ -37,6 +37,7 @@ export default function AdminDashboardPage() {
   const [pendingDeleteJob, setPendingDeleteJob] = React.useState<{ id: number; title: string } | null>(null);
   const [pendingUserStatus, setPendingUserStatus] = React.useState<{ id: number; user: User; newStatus: string } | null>(null);
   const [pendingCompanyStatus, setPendingCompanyStatus] = React.useState<{ id: number; name: string; newStatus: string } | null>(null);
+  const [pendingCompanyTier, setPendingCompanyTier] = React.useState<{ id: number; tier: "BASIC" | "PRO" } | null>(null);
 
   // Check auth
   React.useEffect(() => {
@@ -185,6 +186,25 @@ export default function AdminDashboardPage() {
     }
   }
 
+  async function handleUpdateCompanyTier(id: number, newTier: "BASIC" | "PRO") {
+    setPendingCompanyTier({ id, tier: newTier });
+  }
+
+  async function performUpdateCompanyTier() {
+    if (!pendingCompanyTier) return;
+    const { id, tier } = pendingCompanyTier;
+    setPendingCompanyTier(null);
+    const action = tier === "PRO" ? "upgrade" : "downgrade";
+    try {
+      await adminApi.updateCompanyTier(id, tier);
+      setCompanies((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, tier } : c))
+      );
+    } catch (err: any) {
+      alert(err?.message || `Failed to ${action} company`);
+    }
+  }
+
   if (!ready || !user || !user.roles.includes("ADMIN")) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
@@ -215,6 +235,11 @@ export default function AdminDashboardPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/admin/resumes" className="gap-2">
+              <FileText className="h-4 w-4" aria-hidden="true" /> Resumes Database
+            </Link>
+          </Button>
           <Button variant="outline" asChild>
             <Link href="/jobs" className="gap-2">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" /> View Jobs Board
@@ -572,6 +597,7 @@ export default function AdminDashboardPage() {
                   <th className="px-6 py-4">Industry</th>
                   <th className="px-6 py-4">Location</th>
                   <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Tier</th>
                   <th className="px-6 py-4">Registered</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
@@ -579,7 +605,7 @@ export default function AdminDashboardPage() {
               <tbody className="divide-y divide-border/40">
                 {filteredCompanies.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
+                    <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
                       No matching companies found.
                     </td>
                   </tr>
@@ -592,6 +618,11 @@ export default function AdminDashboardPage() {
                       <td className="px-6 py-4 text-muted-foreground">{c.location || "—"}</td>
                       <td className="px-6 py-4">
                         <CompanyStatusBadge status={c.status} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge variant={c.tier === "PRO" ? "success" : "secondary"}>
+                          {c.tier || "BASIC"}
+                        </Badge>
                       </td>
                       <td className="px-6 py-4 text-xs text-muted-foreground">
                         {c.createdDate ? new Date(c.createdDate).toLocaleDateString() : "N/A"}
@@ -619,14 +650,35 @@ export default function AdminDashboardPage() {
                             </>
                           )}
                           {c.status === "APPROVED" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 px-2 text-xs text-red-500 hover:bg-red-500/10 gap-1 border-red-500/20"
-                              onClick={() => handleUpdateCompanyStatus(c.id, c.name, "DENIED")}
-                            >
-                              <Ban className="h-3.5 w-3.5" aria-hidden="true" /> Revoke
-                            </Button>
+                            <>
+                              {c.tier === "PRO" ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 px-2 text-xs text-amber-500 hover:bg-amber-500/10 gap-1 border-amber-500/20 mr-1.5"
+                                  onClick={() => handleUpdateCompanyTier(c.id, "BASIC")}
+                                >
+                                  Downgrade Basic
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 px-2 text-xs text-violet-500 hover:bg-violet-500/10 gap-1 border-violet-500/20 mr-1.5"
+                                  onClick={() => handleUpdateCompanyTier(c.id, "PRO")}
+                                >
+                                  Upgrade Pro
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-2 text-xs text-red-500 hover:bg-red-500/10 gap-1 border-red-500/20"
+                                onClick={() => handleUpdateCompanyStatus(c.id, c.name, "DENIED")}
+                              >
+                                <Ban className="h-3.5 w-3.5" aria-hidden="true" /> Revoke
+                              </Button>
+                            </>
                           )}
                           {c.status === "DENIED" && (
                             <Button
@@ -805,6 +857,20 @@ export default function AdminDashboardPage() {
         cancelLabel="Cancel"
         destructive={pendingCompanyStatus?.newStatus === "DENIED"}
         onConfirm={performUpdateCompanyStatus}
+      />
+
+      <ConfirmDialog
+        open={!!pendingCompanyTier}
+        onCancel={() => setPendingCompanyTier(null)}
+        title={pendingCompanyTier?.tier === "PRO" ? "Upgrade to Pro?" : "Downgrade to Basic?"}
+        description={
+          pendingCompanyTier
+            ? `Are you sure you want to change this company's tier to ${pendingCompanyTier.tier}?`
+            : ""
+        }
+        confirmLabel="Confirm"
+        cancelLabel="Cancel"
+        onConfirm={performUpdateCompanyTier}
       />
     </div>
   );
