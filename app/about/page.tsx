@@ -39,11 +39,11 @@ const VALUES = [
   },
 ];
 
-const STATS = [
-  { value: "2 JV", label: "Founding partners" },
-  { value: "3 roles", label: "Job seeker, employer, admin" },
-  { value: "100%", label: "Healthcare focus" },
-];
+// const STATS = [
+//   { value: "2 JV", label: "Founding partners" },
+//   { value: "3 roles", label: "Job seeker, employer, admin" },
+//   { value: "100%", label: "Healthcare focus" },
+// ];
 
 export default function AboutPage() {
   return (
@@ -71,7 +71,7 @@ export default function AboutPage() {
         </section>
 
         {/* Stats */}
-        <section
+        {/* <section
           aria-label="At a glance"
           className="grid grid-cols-3 gap-3 sm:gap-6"
         >
@@ -88,6 +88,7 @@ export default function AboutPage() {
             </Card>
           ))}
         </section>
+        */}
 
         {/* Mission */}
         <section>
